@@ -23,9 +23,13 @@ import (
 	"github.com/spf13/viper"
 )
 
-var cfgFile string
-var Server string
-var Verbose bool
+var (
+	cfgFile string
+	Server  string
+	Verbose bool
+	Version string
+	Githash string
+)
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
