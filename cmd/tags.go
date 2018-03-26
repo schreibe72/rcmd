@@ -24,10 +24,11 @@ import (
 )
 
 var (
-	sortFlag   bool
-	descFlag   bool
-	intFlag    bool
-	sortLabels string
+	stringFlag  bool
+	descFlag    bool
+	intFlag     bool
+	versionFlag bool
+	sortLabels  string
 )
 
 // tagsCmd represents the tags command
@@ -35,6 +36,20 @@ var tagsCmd = &cobra.Command{
 	Use:   "tags",
 	Short: "Show all tags of a repository",
 	Long:  `Show all tags of a repository`,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		c, err := getSortCriteria()
+		if err != nil {
+			return fmt.Errorf("Cannot Use More Than One Sortflags. Do Not Use -i -V -s Together")
+		}
+		if descFlag && c == "" {
+			return fmt.Errorf("Cannot Output in Decent Order. You Need A Sort Flag")
+		}
+		if sortLabels == "" && c != "" {
+			return fmt.Errorf("Cannot Sort Because Missing Sort Label. Use -l")
+		}
+
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) != 1 {
 			log.Fatal("Missing Repo")
@@ -45,8 +60,9 @@ var tagsCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 		var tags []string
-		if sortFlag {
-			tags, err = hub.SortedTagsByLabel(repo, strings.Split(sortLabels, ","), descFlag, intFlag)
+		if stringFlag || intFlag || versionFlag {
+			criteria, _ := getSortCriteria()
+			tags, err = hub.SortedTagsByLabel(repo, strings.Split(sortLabels, ","), descFlag, criteria)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -63,6 +79,27 @@ var tagsCmd = &cobra.Command{
 	},
 }
 
+func getSortCriteria() (string, error) {
+	i := 0
+	result := ""
+	if intFlag {
+		i++
+		result = "int"
+	}
+	if versionFlag {
+		i++
+		result = "version"
+	}
+	if stringFlag {
+		i++
+		result = "string"
+	}
+	if i > 1 {
+		return "", fmt.Errorf("Too Many Flags")
+	}
+	return result, nil
+}
+
 func init() {
 	RootCmd.AddCommand(tagsCmd)
 
@@ -75,9 +112,10 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// tagsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	tagsCmd.Flags().BoolVarP(&sortFlag, "sort", "s", false, "Sort By Labels")
-	tagsCmd.Flags().BoolVarP(&intFlag, "int", "i", false, "Sort By Labels as integer")
+	tagsCmd.Flags().BoolVarP(&stringFlag, "sort", "s", false, "Sort label by string")
+	tagsCmd.Flags().BoolVarP(&intFlag, "int", "i", false, "Sort label by integer")
+	tagsCmd.Flags().BoolVarP(&versionFlag, "version", "V", false, "Sort label by version (X.Y.Z)")
 	tagsCmd.Flags().BoolVarP(&descFlag, "desc", "d", false, "decent sort order")
-	tagsCmd.Flags().StringVarP(&sortLabels, "labels", "l", "", "Komma separated Labels")
+	tagsCmd.Flags().StringVarP(&sortLabels, "labels", "l", "", "SortLabel, use Komma to separate more labels")
 
 }

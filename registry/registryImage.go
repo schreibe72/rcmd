@@ -1,6 +1,10 @@
 package registry
 
-import "strconv"
+import (
+	"strconv"
+
+	"github.com/hashicorp/go-version"
+)
 
 type RegistryImage struct {
 	labels       map[string]string
@@ -12,7 +16,7 @@ type RegistryImages struct {
 	RegistryImages []RegistryImage
 	sortLabels     []string
 	desc           bool
-	sortInt        bool
+	sortCriteria   string
 }
 
 func (ris RegistryImages) Len() int {
@@ -20,11 +24,16 @@ func (ris RegistryImages) Len() int {
 }
 
 func (ris RegistryImages) Less(i, j int) bool {
-	if ris.sortInt {
+	switch ris.sortCriteria {
+	case "string":
+		return ris.LessByAlpha(i, j)
+	case "int":
 		return ris.LessByInt(i, j)
+	case "version":
+		return ris.LessByVersion(i, j)
+	default:
+		return ris.LessByAlpha(i, j)
 	}
-	return ris.LessByAlpha(i, j)
-
 }
 
 func (ris RegistryImages) LessByInt(i, j int) bool {
@@ -48,6 +57,46 @@ func (ris RegistryImages) LessByInt(i, j int) bool {
 				return true
 			}
 			if a > b {
+				return false
+			}
+		}
+	}
+	return false
+}
+
+func (ris RegistryImages) LessByVersion(i, j int) bool {
+
+	if ris.desc {
+		for _, label := range ris.sortLabels {
+			v1, err := version.NewVersion(ris.RegistryImages[i].labels[label])
+			if err != nil {
+				return true
+			}
+			v2, err := version.NewVersion(ris.RegistryImages[j].labels[label])
+			if err != nil {
+				return false
+			}
+			if v1.GreaterThan(v2) {
+				return true
+			}
+			if v1.LessThan(v2) {
+				return false
+			}
+		}
+	} else {
+		for _, label := range ris.sortLabels {
+			v1, err := version.NewVersion(ris.RegistryImages[i].labels[label])
+			if err != nil {
+				return false
+			}
+			v2, err := version.NewVersion(ris.RegistryImages[j].labels[label])
+			if err != nil {
+				return true
+			}
+			if v1.LessThan(v2) {
+				return true
+			}
+			if v1.GreaterThan(v2) {
 				return false
 			}
 		}

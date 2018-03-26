@@ -54,11 +54,11 @@ func (r *privatRegistry) Labels(repo, tag string) (map[string]string, error) {
 	return image.Config.Labels, nil
 }
 
-func (r *privatRegistry) SortedTagsByLabel(repo string, sortLabels []string, desc, sortInt bool) ([]string, error) {
+func (r *privatRegistry) SortedTagsByLabel(repo string, sortLabels []string, desc bool, sortCriteria string) ([]string, error) {
 
 	var ris RegistryImages
 	ris.desc = desc
-	ris.sortInt = sortInt
+	ris.sortCriteria = sortCriteria
 	ris.sortLabels = sortLabels
 
 	tags, err := r.Tags(repo)
