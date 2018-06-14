@@ -87,5 +87,11 @@ func initConfig() {
 	if Server == "" {
 		Server = viper.GetString("Server")
 	}
+	if Username == "" {
+		Username = viper.GetString("Username")
+	}
+	if Password == "" {
+		Password = viper.GetString("Password")
+	}
 
 }
