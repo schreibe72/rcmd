@@ -28,16 +28,19 @@ var reposCmd = &cobra.Command{
 	Short: "Show all repositories",
 	Long:  `Show all repositories`,
 	Run: func(cmd *cobra.Command, args []string) {
-		hub, err := registry.New(Server, Username, Password, Verbose)
-		if err != nil {
-			log.Fatal(err)
-		}
-		repos, err := hub.Repositories()
-		if err != nil {
-			log.Fatal(err)
-		}
-		for _, repo := range repos {
-			fmt.Println(repo)
+		for i := range args {
+			s, u, p := getServerCredential(args[i])
+			hub, err := registry.New(fmt.Sprintf("https://%s", s), u, p, Verbose)
+			if err != nil {
+				log.Fatal(err)
+			}
+			repos, err := hub.Repositories()
+			if err != nil {
+				log.Fatal(err)
+			}
+			for _, repo := range repos {
+				fmt.Printf("%s/%s\n", s, repo)
+			}
 		}
 	},
 }

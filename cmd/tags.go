@@ -29,6 +29,7 @@ var (
 	intFlag     bool
 	versionFlag bool
 	sortLabels  string
+	excludeTags string
 )
 
 // tagsCmd represents the tags command
@@ -54,8 +55,10 @@ var tagsCmd = &cobra.Command{
 		if len(args) != 1 {
 			log.Fatal("Missing Repo")
 		}
-		repo := args[0]
-		hub, err := registry.New(Server, Username, Password, Verbose)
+
+		s, u, p := getServerCredential(args[0])
+		repo := getRepo(args[0])
+		hub, err := registry.New(fmt.Sprintf("https://%s", s), u, p, Verbose)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -74,7 +77,10 @@ var tagsCmd = &cobra.Command{
 		}
 
 		for _, tag := range tags {
-			fmt.Printf("%s:%s\n", repo, tag)
+			if checkExcludeTag(tag) {
+				continue
+			}
+			fmt.Printf("%s/%s:%s\n", s, repo, tag)
 		}
 	},
 }
@@ -100,6 +106,16 @@ func getSortCriteria() (string, error) {
 	return result, nil
 }
 
+func checkExcludeTag(tag string) bool {
+	tags := strings.Split(excludeTags, ",")
+	for _, t := range tags {
+		if tag == t {
+			return true
+		}
+	}
+	return false
+}
+
 func init() {
 	RootCmd.AddCommand(tagsCmd)
 
@@ -116,6 +132,7 @@ func init() {
 	tagsCmd.Flags().BoolVarP(&intFlag, "int", "i", false, "Sort label by integer")
 	tagsCmd.Flags().BoolVarP(&versionFlag, "version", "V", false, "Sort label by version (X.Y.Z)")
 	tagsCmd.Flags().BoolVarP(&descFlag, "desc", "d", false, "decent sort order")
-	tagsCmd.Flags().StringVarP(&sortLabels, "labels", "l", "", "SortLabel, use Komma to separate more labels")
+	tagsCmd.Flags().StringVarP(&sortLabels, "labels", "l", "", "SortLabel, use Comma to separate more labels")
+	tagsCmd.Flags().StringVarP(&excludeTags, "exclude", "e", "", "ExcludeTags, use Comma to separate more tags to exclude")
 
 }

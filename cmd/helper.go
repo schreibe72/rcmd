@@ -18,3 +18,17 @@ func splitRepoTag(args ...string) (string, string, error) {
 	repo := strings.Join(reposlice, ":")
 	return repo, tag, nil
 }
+
+func getServerCredential(connectionstring string) (server string, username string, password string) {
+	parts := strings.SplitN(connectionstring, "/", 2)
+	server = parts[0]
+	username = Servers[server].Username
+	password = Servers[server].Password
+	return
+}
+
+func getRepo(connectionstring string) (repo string) {
+	parts := strings.SplitN(connectionstring, "/", 2)
+	repo = parts[1]
+	return
+}
