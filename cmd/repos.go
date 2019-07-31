@@ -22,14 +22,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	registryFlag bool
+)
+
 // reposCmd represents the repos command
 var reposCmd = &cobra.Command{
 	Use:   "repos",
 	Short: "Show all repositories",
 	Long:  `Show all repositories`,
 	Run: func(cmd *cobra.Command, args []string) {
-		for i := range args {
-			s, u, p := getServerCredential(args[i])
+		r := args
+		if registryFlag {
+			r = getConfiguredRegistries()
+		}
+		for i := range r {
+			s, u, p := getServerCredential(r[i])
 			hub, err := registry.New(fmt.Sprintf("https://%s", s), u, p, Verbose)
 			if err != nil {
 				log.Fatal(err)
@@ -58,4 +66,5 @@ func init() {
 	// is called directly, e.g.:
 	// reposCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
+	reposCmd.Flags().BoolVarP(&registryFlag, "registries", "r", false, "interate over all configured registries")
 }

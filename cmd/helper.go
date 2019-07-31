@@ -32,3 +32,11 @@ func getRepo(connectionstring string) (repo string) {
 	repo = parts[1]
 	return
 }
+
+func getConfiguredRegistries() (registries []string) {
+	registries = make([]string, 0, len(Servers))
+	for k := range Servers {
+		registries = append(registries, k)
+	}
+	return registries
+}
