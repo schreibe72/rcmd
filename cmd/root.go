@@ -23,9 +23,14 @@ import (
 	"github.com/spf13/viper"
 )
 
+type ServerCredentials struct {
+	Username string
+	Password string
+}
+
 var (
 	cfgFile  string
-	Server   string
+	Servers  map[string]ServerCredentials
 	Username string
 	Password string
 	Verbose  bool
@@ -60,7 +65,6 @@ func init() {
 	// will be global for your application.
 
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.rcmd.yaml)")
-	RootCmd.PersistentFlags().StringVarP(&Server, "server", "S", "", "Url to Registry")
 	RootCmd.PersistentFlags().StringVarP(&Username, "username", "U", "", "Username")
 	RootCmd.PersistentFlags().StringVarP(&Password, "password", "O", "", "Password")
 	RootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
@@ -84,14 +88,7 @@ func initConfig() {
 			log.Println("Using config file:", viper.ConfigFileUsed())
 		}
 	}
-	if Server == "" {
-		Server = viper.GetString("Server")
-	}
-	if Username == "" {
-		Username = viper.GetString("Username")
-	}
-	if Password == "" {
-		Password = viper.GetString("Password")
-	}
+	Servers = map[string]ServerCredentials{}
+	viper.UnmarshalKey("Servers", &Servers)
 
 }

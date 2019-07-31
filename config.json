@@ -1,0 +1,12 @@
+{
+    "servers": {
+        "blablupp": {
+            "username": "user",
+            "password": "pw"
+        },
+        "foobar": {
+            "username": "foouser",
+            "password": "foopw"
+        }
+    }
+}

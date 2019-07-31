@@ -28,11 +28,13 @@ var labelsCmd = &cobra.Command{
 	Short: "Show all Labels for a Repo Tag",
 	Long:  `Show all Labels for a Repo Tag`,
 	Run: func(cmd *cobra.Command, args []string) {
-		repo, tag, err := splitRepoTag(args...)
+		s, u, p := getServerCredential(args[0])
+		r := getRepo(args[0])
+		repo, tag, err := splitRepoTag(r)
 		if err != nil {
 			log.Fatal(err)
 		}
-		hub, err := registry.New(Server, Username, Password, Verbose)
+		hub, err := registry.New(fmt.Sprintf("https://%s", s), u, p, Verbose)
 		if err != nil {
 			log.Fatal(err)
 		}
