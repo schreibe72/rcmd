@@ -40,3 +40,12 @@ func getConfiguredRegistries() (registries []string) {
 	}
 	return registries
 }
+
+func contains(a []string, needle string) bool {
+	for _, i := range a {
+		if i == needle {
+			return true
+		}
+	}
+	return false
+}

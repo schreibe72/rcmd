@@ -39,6 +39,7 @@ var (
 	Version           string
 	Githash           string
 	SubscriptionNames []string
+	registriesNames   []string
 )
 
 // RootCmd represents the base command when called without any subcommands
@@ -72,7 +73,8 @@ func init() {
 	RootCmd.PersistentFlags().StringVarP(&Password, "password", "O", "", "Password")
 	RootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
 	RootCmd.PersistentFlags().BoolVarP(&Azure, "azure", "a", false, "get registry config from azure")
-	RootCmd.PersistentFlags().StringArrayVarP(&SubscriptionNames, "subscription", "S", []string{}, "Get Config for Subscriptions")
+	RootCmd.PersistentFlags().StringArrayVarP(&SubscriptionNames, "subscription", "S", []string{}, "Use only this Subscriptions. No Value means: take them all")
+	RootCmd.PersistentFlags().StringArrayVarP(&registriesNames, "registries", "R", []string{}, "Use only this registries. No Value means: take them all")
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 }
@@ -97,7 +99,9 @@ func initAzureConfig() {
 			panic(err)
 		}
 		for _, r := range registries {
-			Servers[r.LoginServer] = ServerCredentials{Username: r.Login, Password: r.Password}
+			if len(registriesNames) == 0 || contains(registriesNames, r.LoginServer) || contains(registriesNames, r.Name) {
+				Servers[r.LoginServer] = ServerCredentials{Username: r.Login, Password: r.Password}
+			}
 		}
 	}
 }
@@ -118,4 +122,10 @@ func initConfigFile() {
 	}
 	Servers = map[string]ServerCredentials{}
 	viper.UnmarshalKey("Servers", &Servers)
+
+	for r := range Servers {
+		if len(registriesNames) > 0 && !contains(registriesNames, r) {
+			delete(Servers, r)
+		}
+	}
 }

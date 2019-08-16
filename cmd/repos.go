@@ -66,5 +66,5 @@ func init() {
 	// is called directly, e.g.:
 	// reposCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	reposCmd.Flags().BoolVarP(&registryFlag, "registries", "r", false, "interate over all configured registries")
+	reposCmd.Flags().BoolVarP(&registryFlag, "all-registries", "r", false, "interate over all configured registries")
 }

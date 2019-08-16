@@ -17,7 +17,6 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/schreibe72/rcmd/registry"
 	"github.com/spf13/cobra"
@@ -28,8 +27,8 @@ var (
 	descFlag    bool
 	intFlag     bool
 	versionFlag bool
-	sortLabels  string
-	excludeTags string
+	sortLabels  []string
+	excludeTags []string
 )
 
 // tagsCmd represents the tags command
@@ -45,7 +44,7 @@ var tagsCmd = &cobra.Command{
 		if descFlag && c == "" {
 			return fmt.Errorf("Cannot Output in Decent Order. You Need A Sort Flag")
 		}
-		if sortLabels == "" && c != "" {
+		if len(sortLabels) == 0 && c != "" {
 			return fmt.Errorf("Cannot Sort Because Missing Sort Label. Use -l")
 		}
 
@@ -65,7 +64,7 @@ var tagsCmd = &cobra.Command{
 		var tags []string
 		if stringFlag || intFlag || versionFlag {
 			criteria, _ := getSortCriteria()
-			tags, err = hub.SortedTagsByLabel(repo, strings.Split(sortLabels, ","), descFlag, criteria)
+			tags, err = hub.SortedTagsByLabel(repo, sortLabels, descFlag, criteria)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -77,7 +76,7 @@ var tagsCmd = &cobra.Command{
 		}
 
 		for _, tag := range tags {
-			if checkExcludeTag(tag) {
+			if contains(excludeTags, tag) {
 				continue
 			}
 			fmt.Printf("%s/%s:%s\n", s, repo, tag)
@@ -106,16 +105,6 @@ func getSortCriteria() (string, error) {
 	return result, nil
 }
 
-func checkExcludeTag(tag string) bool {
-	tags := strings.Split(excludeTags, ",")
-	for _, t := range tags {
-		if tag == t {
-			return true
-		}
-	}
-	return false
-}
-
 func init() {
 	RootCmd.AddCommand(tagsCmd)
 
@@ -132,7 +121,7 @@ func init() {
 	tagsCmd.Flags().BoolVarP(&intFlag, "int", "i", false, "Sort label by integer")
 	tagsCmd.Flags().BoolVarP(&versionFlag, "version", "V", false, "Sort label by version (X.Y.Z)")
 	tagsCmd.Flags().BoolVarP(&descFlag, "desc", "d", false, "decent sort order")
-	tagsCmd.Flags().StringVarP(&sortLabels, "labels", "l", "", "SortLabel, use Comma to separate more labels")
-	tagsCmd.Flags().StringVarP(&excludeTags, "exclude", "e", "", "ExcludeTags, use Comma to separate more tags to exclude")
+	tagsCmd.Flags().StringArrayVarP(&sortLabels, "labels", "l", []string{}, "SortLabel, use Comma to separate more labels")
+	tagsCmd.Flags().StringArrayVarP(&excludeTags, "exclude", "e", []string{}, "ExcludeTags, use Comma to separate more tags to exclude")
 
 }
